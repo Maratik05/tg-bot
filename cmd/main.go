@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -29,44 +28,9 @@ func main() {
 	u.Timeout = 60
 
 	updates := bot.GetUpdatesChan(u)
-
+	service := product.NewService(bot)
 	for update := range updates {
-		if update.Message == nil { // If we got a message
-			continue
-		}
-		service := product.NewService()
-		fmt.Print("nan")
-		switch update.Message.Command() {
-		case "help":
-			helpCommand(bot, update.Message)
-		case "list":
-			listCommand(bot, update.Message, service)
-		default:
-			defaultResponse(bot, update.Message)
-		}
+		service.HandleUpdate(update)
 
 	}
-}
-
-func helpCommand(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, "/help - help")
-	bot.Send(msg)
-}
-
-func listCommand(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message, productService *product.Service) {
-	products := productService.List()
-	outputMsg := "List products\n\n"
-
-	for _, product := range products {
-		outputMsg += product.Title
-		outputMsg += "\n"
-	}
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, outputMsg)
-	bot.Send(msg)
-}
-func defaultResponse(bot *tgbotapi.BotAPI, inputMessage *tgbotapi.Message) {
-	log.Printf("[%s] %s", inputMessage.From.UserName, inputMessage.Text)
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, inputMessage.Text)
-	msg.ReplyToMessageID = inputMessage.MessageID
-	bot.Send(msg)
 }
